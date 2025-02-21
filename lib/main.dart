@@ -54,11 +54,37 @@ class _QRViewExampleState extends State<QRViewExample> {
                   Text('Result: ${result!.code}')
                 else
                   const Text('Scan a code'),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: result != null && result!.code != null
                       ? () => _checkWithVirusTotal(result!.code!)
                       : null,
-                  child: const Text('Check with VirusTotal'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    elevation: 5,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    disabledForegroundColor: Colors.grey.shade600,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.security),
+                      SizedBox(width: 8),
+                      Text(
+                        'Check with VirusTotal',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -121,12 +147,27 @@ class _QRViewExampleState extends State<QRViewExample> {
           showDialog(
             context: context,
             builder: (_) => AlertDialog(
-              title: const Text('Peringatan!'),
+              title: const Text('Peringatan!',
+                  style: TextStyle(color: Colors.red)),
               content: const Text(
-                  'Link/URL Website ini terdeteksi berbahaya! Tidak disarankan untuk mengakses website ini.'),
+                  'Link/URL Website ini terdeteksi berbahaya! Tidak disarankan untuk mengakses website ini.',
+                  style: TextStyle(color: Colors.red)),
               actions: <Widget>[
                 TextButton(
-                  child: const Text('OK'),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.warning),
+                      SizedBox(width: 8),
+                      Text('OK'),
+                    ],
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
@@ -139,18 +180,36 @@ class _QRViewExampleState extends State<QRViewExample> {
           showDialog(
             context: context,
             builder: (_) => AlertDialog(
-              title: const Text('Website Aman'),
+              title: const Text('Website Aman',
+                  style: TextStyle(
+                      color: Colors.blue, fontWeight: FontWeight.bold)),
               content: const Text(
                   'Website ini aman untuk diakses. Apakah Anda ingin membuka website ini?'),
               actions: <Widget>[
                 TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.grey,
+                  ),
                   child: const Text('Batal'),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
                 TextButton(
-                  child: const Text('Buka Website'),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.open_in_new),
+                      SizedBox(width: 8),
+                      Text('Buka Website'),
+                    ],
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop();
                     _launchURL(url);
