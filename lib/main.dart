@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const MyApp());
 
@@ -14,7 +15,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blueGrey),
       home: const QRViewExample(),
-      
     );
   }
 }
@@ -94,46 +94,90 @@ class _QRViewExampleState extends State<QRViewExample> {
   }
 
   Future<void> _checkWithVirusTotal(String url) async {
-  const apiKey = 'YOUR_API_KEY';
-  final encodedUrl = base64Url.encode(utf8.encode(url)).replaceAll('=', '');  // Encode and remove padding
-  final apiUrl = 'https://www.virustotal.com/api/v3/urls/$encodedUrl';
+    const apiKey =
+        'e61db4263458af2d6f835f37a516bcfb9b253f554ddb95d0c717e28b7fcce6bc';
+    final encodedUrl = base64Url.encode(utf8.encode(url)).replaceAll('=', '');
+    final apiUrl = 'https://www.virustotal.com/api/v3/urls/$encodedUrl';
 
-  try {
-    final response = await http.get(
-      Uri.parse(apiUrl),
-      headers: {
-        'x-apikey': apiKey,
-        'Content-Type': 'application/json',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-      // Tampilkan hasil dari VirusTotal (misalnya dideteksi atau aman)
-      final scanResult = jsonResponse['data']['attributes']['last_analysis_stats'];
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('VirusTotal Result'),
-          content: Text('Scan Result: ${scanResult.toString()}'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
+    try {
+      final response = await http.get(
+        Uri.parse(apiUrl),
+        headers: {
+          'x-apikey': apiKey,
+          'Content-Type': 'application/json',
+        },
       );
-    } else {
-      _showErrorDialog('Error: Unable to scan the URL with VirusTotal.');
-    }
-  } catch (e) {
-    _showErrorDialog('Error: $e');
-  }
-}
 
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        final scanResult =
+            jsonResponse['data']['attributes']['last_analysis_stats'];
+
+        // Cek jika ada malicious atau suspicious
+        final isMalicious = (scanResult['malicious'] ?? 0) > 0 ||
+            (scanResult['suspicious'] ?? 0) > 0;
+
+        if (isMalicious) {
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('Peringatan!'),
+              content: const Text(
+                  'Link/URL Website ini terdeteksi berbahaya! Tidak disarankan untuk mengakses website ini.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          );
+        } else {
+          // Website aman, tampilkan opsi untuk membuka URL
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('Website Aman'),
+              content: const Text(
+                  'Website ini aman untuk diakses. Apakah Anda ingin membuka website ini?'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Batal'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: const Text('Buka Website'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _launchURL(url);
+                  },
+                ),
+              ],
+            ),
+          );
+        }
+      } else {
+        _showErrorDialog('Error: Unable to scan the URL with VirusTotal.');
+      }
+    } catch (e) {
+      _showErrorDialog('Error: $e');
+    }
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (!await launchUrl(uri)) {
+        throw Exception('Could not launch $url');
+      }
+    } catch (e) {
+      _showErrorDialog('Error launching URL: $e');
+    }
+  }
 
   void _showErrorDialog(String message) {
     showDialog(
